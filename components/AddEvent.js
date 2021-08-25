@@ -1,7 +1,8 @@
-import React from 'react'
+import {React,Fragment} from 'react'
 import { Avatar, Button, Grid, Paper, TextField } from '@material-ui/core'
 import AddBoxIcon from '@material-ui/icons/AddBox';
 import { Form, Formik, Field, ErrorMessage } from 'formik';
+import Snackbar from '@material-ui/core/Snackbar';
 import axios from 'axios';
 import { useState } from 'react';
 
@@ -13,9 +14,9 @@ import CloseIcon from '@material-ui/icons/Close';
 import * as Yup from 'yup';
 
 
-import moment from 'moment';
+// import moment from 'moment';
 
-var today = moment().toDate();
+// var today = moment().toDate();
 
 
 
@@ -25,8 +26,9 @@ const Add_Event = () => {
     const paperStyle = { padding: '20px 20px', width: 800, height: 460, margin: "30px auto" }
     const headerStyle = { margin: 0 }
     const avatarStyle = { backgroundColor: '' }
-    const btnStyle = { margin: '10px 5px 10px auto', display: 'flex', justify: 'space-between', alignItems: 'right' }
+    // const btnStyle = { margin: '10px 5px 10px auto', display: 'flex', justify: 'space-between', alignItems: 'right' }
     const formStyle = { textAlign: 'center' }
+    const marginTop = { margin: '8px 0' }
     const initialValues = {
         eventName: '',
         eventType: '',
@@ -36,49 +38,70 @@ const Add_Event = () => {
         startTime: '',
         endTime: ''
     }
-    
+
+    const [success, setSuccess] = useState(false);
+    const [mesg, setMesg] = useState('');
+    const [open, setOpen] = useState(false);
+
     const handleImage = () => {
         // history.push('/UploadImage')
     }
 
     let history = useHistory();
-    const onCreate = (values, props) => {
-        event.preventDefault();
-        const event = {
+    const onSubmit = (values, props) => {
+        // event.preventDefault();
+        const Event = {
             eventName: values.eventName,
             eventType: values.eventType,
             eventDescription: values.eventDescription,
             eventVenue: values.eventVenue,
-            eventDate: values.eventDate,
             startTime: values.startTime,
             endTime: values.endTime
         }
 
         console.log(Event)
-            // axios.post("http://localhost:8081/admin/AddEvent",event)
+            // axios.post("http://localhost:8081/admin/AddEvent",Event)
             .then((response) => {
                 var resp = response.status;
                 console.log(response.data)
                 console.log(response.status)
                 if (response == 200) {
-                    alert("Events are created");
-                    history.push('/');
+                    setSuccess(true);
+                    setMesg(response.data.message);
+                    setOpen(true);
                 }
             })
 
             .catch((error) => {
                 if (error.status.response == 400) {
                     console.log(error.response.data.message);
-                    alert("Event already exist")
+                    //  alert("Email already exist")
+                    setOpen(true);
+                    setMesg(error.response.data.message);
                     props.resetForm()
                 }
-                else
-                    alert("Something went wrong")
-                console.log(error)
+                else {
+                    //    alert("Something went wrong");
+                    setOpen(true);
+                    setMesg("Something went wrong");
+
+                    console.log(error)
+                }
             });
 
 
     }
+
+    const handleClose = (event, reason) => {
+        if (success) {
+            setOpen(false);
+            history.push('/');
+        }
+        else {
+            setOpen(false);
+
+        }
+    };
 
 
     const eventSchema = Yup.object().shape({
@@ -103,7 +126,7 @@ const Add_Event = () => {
 
                 </Grid>
 
-                <Formik initialValues={initialValues} eventSchema={eventSchema} onSubmit={onCreate}>
+                <Formik initialValues={initialValues} eventSchema={eventSchema} onSubmit={onSubmit}>
 
                     {(props) => (
                         <Form style={formStyle}>
@@ -162,14 +185,17 @@ const Add_Event = () => {
 
                                     </Grid>
 
-                                    
+
                                 </Grid>
                             </div>
                             <Grid container justify="flex-end">
-                                <Button onClick={handleImage} type='create' variant='contained'  color='primary' style={btnStyle}
-                                
-                                >Create Event</Button>
-                              
+                                {/* <Button type='create' variant='contained'  color='primary' style={btnStyle} */}
+
+
+                                {/* >Create Event</Button> */}
+                                <Button type='submit' color='primary' variant="contained" disabled={props.isSubmitting}
+                                    style={marginTop} >{props.isSubmitting ? "Loading" : "Create"}</Button>
+
                             </Grid>
 
                         </Form>
@@ -177,7 +203,24 @@ const Add_Event = () => {
                 </Formik>
 
             </Paper>
-            
+            <Snackbar
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+                open={open}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                message={mesg}
+                action={
+                    <Fragment>
+
+                        <IconButton size="small" aria-label="close" color="inherit" onClick={handleClose}>
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </Fragment>
+                }
+            />
         </Grid>
     )
 }
