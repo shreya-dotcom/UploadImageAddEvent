@@ -14,13 +14,6 @@ import CloseIcon from '@material-ui/icons/Close';
 import * as Yup from 'yup';
 
 
-// import moment from 'moment';
-
-// var today = moment().toDate();
-
-
-
-
 
 const Add_Event = () => {
     const paperStyle = { padding: '20px 20px', width: 800, height: 460, margin: "30px auto" }
